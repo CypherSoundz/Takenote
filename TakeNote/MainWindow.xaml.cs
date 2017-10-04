@@ -41,10 +41,32 @@ private IKeyboardMouseEvents m_GlobalHook;
             m_GlobalHook.MouseDownExt += GlobalHookMouseDownExt;
             m_GlobalHook.KeyPress += GlobalHookKeyPress;
         }
-
+        string pathName;
+        bool recording;
+        int count;
+        Recorder rec;
         private void GlobalHookKeyPress(object sender, KeyPressEventArgs e)
         {
             Console.WriteLine("KeyPress: \t{0}", e.KeyChar);
+
+            if (e.KeyChar == '\u001a') //ctrl+z
+            {
+                 rec = new Recorder(0, @"D:\", string.Format("test{0}.wav", count++));
+                if (!recording)
+                {
+                    recording = true;
+                    // pathName = "d:\test.wav";
+                    rec.StartRecording();
+                }
+            }
+            
+            if(e.KeyChar == '\u0018')
+            {
+                string path = rec.RecordEnd();
+                recording = false;
+                dontJudgeMe(path);
+            }
+            
         }
 
         private void GlobalHookMouseDownExt(object sender, MouseEventExtArgs e)
@@ -72,7 +94,7 @@ private IKeyboardMouseEvents m_GlobalHook;
         {
           
         }
-        private void dontJudgeMe()
+        private void dontJudgeMe(string filepath)
         {
             var speech = SpeechClient.Create();
             var response = speech.Recognize(new RecognitionConfig()
@@ -80,12 +102,12 @@ private IKeyboardMouseEvents m_GlobalHook;
                 Encoding = RecognitionConfig.Types.AudioEncoding.Linear16,
                 SampleRateHertz = 44100,
                 LanguageCode = "en",
-            }, RecognitionAudio.FromFile(@"D:\once.wav"));
+            }, RecognitionAudio.FromFile(filepath));
             foreach (var result in response.Results)
             {
                 foreach (var alternative in result.Alternatives)
                 {
-                    File.AppendAllText(@"D:\transcript.txt", alternative.Transcript);
+                    File.AppendAllText(string.Format("{0}.txt",filepath), alternative.Transcript);
                     Console.WriteLine(alternative.Transcript);
                 }
             }

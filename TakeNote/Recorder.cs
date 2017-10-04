@@ -1,5 +1,7 @@
-﻿using System;
+﻿using NAudio.Wave;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,19 +19,19 @@ namespace TakeNote
 
         public Recorder(int inputDeviceIndex, String filePath, String fileName)
         {
-            InitializeComponent();
+           // InitializeComponent();
             this.InputDeviceIndex = inputDeviceIndex;
             this.FileName = fileName;
             this.FilePath = filePath;
         }
 
-        public void StartRecording(object sender, EventArgs e)
+        public void StartRecording()
         {
             sourceStream = new WaveIn
             {
                 DeviceNumber = this.InputDeviceIndex,
                 WaveFormat =
-                    new WaveFormat(44100, WaveIn.GetCapabilities(this.InputDeviceIndex).Channels)
+                    new WaveFormat(44100, 1)//WaveIn.GetCapabilities(this.InputDeviceIndex).Channels)
             };
 
             sourceStream.DataAvailable += this.SourceStreamDataAvailable;
@@ -50,7 +52,7 @@ namespace TakeNote
             waveWriter.Flush();
         }
 
-        private void RecordEnd(object sender, EventArgs e)
+        public string RecordEnd()
         {
             if (sourceStream != null)
             {
@@ -60,13 +62,15 @@ namespace TakeNote
             }
             if (this.waveWriter == null)
             {
-                return;
+                return string.Empty;
             }
             this.waveWriter.Dispose();
             this.waveWriter = null;
-            recordEndButton.Enabled = false;
-            Application.Exit();
-            Environment.Exit(0);
+
+            return string.Format("{0}{1}", this.FilePath, this.FileName);
+         //   recordEndButton.Enabled = false;
+            //Application.Exit();
+          //  Environment.Exit(0);
         }
     }
 }
